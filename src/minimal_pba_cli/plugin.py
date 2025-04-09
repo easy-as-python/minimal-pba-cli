@@ -44,9 +44,7 @@ def list_plugins():
 def install(
     name: Annotated[
         str,
-        typer.Argument(
-            help="Name of the plugin to install, excluding the `minimal-pba-cli-plugin-` prefix."
-        ),
+        typer.Argument(help="Name of the plugin to install, excluding the `minimal-pba-cli-plugin-` prefix."),
     ],
 ):
     """Install a published plugin."""
@@ -69,9 +67,7 @@ def install(
             _, version_to_install, _ = get_latest_version(f"minimal-pba-cli-plugin-{name}")
         except HTTPError as e:
             if e.response is not None and e.response.status_code == 404:
-                raise typer.BadParameter(
-                    f"Plugin '{name}' not found."
-                ) from None
+                raise typer.BadParameter(f"Plugin '{name}' not found.") from None
 
     typer.echo(f"Installing plugin '{name}' version '{version_to_install}'...")
 
@@ -92,27 +88,35 @@ def install_local(path: Annotated[Path, typer.Argument(help="Path to the plugin 
     """Install a local plugin."""
 
     typer.echo(f"Installing plugin from '{path}'...")
-    run_external_subprocess([
-        "pipx",
-        "inject",
-        "--editable",
-        "--force",
-        "minimal-pba-cli",
-        str(path),
-    ])
+    run_external_subprocess(
+        [
+            "pipx",
+            "inject",
+            "--editable",
+            "--force",
+            "minimal-pba-cli",
+            str(path),
+        ]
+    )
 
 
 @plugin.command()
-def uninstall(name: Annotated[str, typer.Argument(help="Name of the plugin to uninstall, excluding the `minimal-pba-cli-plugin-` prefix.")]):
+def uninstall(
+    name: Annotated[
+        str, typer.Argument(help="Name of the plugin to uninstall, excluding the `minimal-pba-cli-plugin-` prefix.")
+    ],
+):
     """Uninstall a plugin."""
 
     typer.echo(f"Uninstalling plugin '{name}'...")
-    run_external_subprocess([
-        "pipx",
-        "uninject",
-        "minimal-pba-cli",
-        f"minimal-pba-cli-plugin-{name}",
-    ])
+    run_external_subprocess(
+        [
+            "pipx",
+            "uninject",
+            "minimal-pba-cli",
+            f"minimal-pba-cli-plugin-{name}",
+        ]
+    )
 
 
 def _get_installed_version(name: str) -> Version | None:
@@ -177,7 +181,10 @@ def _get_packages_matching_name(prefix: str) -> list[dict[str, str]]:
             fg=typer.colors.RED,
         )
         raise typer.Exit(1)
-    results = requests.get("https://libraries.io/api/search", params={"q": prefix, "platforms": "pypi", "api_key": os.getenv("LIBRARIES_IO_API_KEY")})
+    results = requests.get(
+        "https://libraries.io/api/search",
+        params={"q": prefix, "platforms": "pypi", "api_key": os.getenv("LIBRARIES_IO_API_KEY")},
+    )
     return [
         {
             "name": package["name"],

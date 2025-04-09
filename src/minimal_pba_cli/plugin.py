@@ -1,4 +1,5 @@
 import importlib.metadata
+import os
 import subprocess
 from pathlib import Path
 from typing import Annotated
@@ -13,6 +14,13 @@ from rich.table import Table
 
 
 plugin = typer.Typer()
+
+
+@plugin.command()
+def catalog():
+    """See all available plugins."""
+
+    _display_plugin_list()
 
 
 @plugin.command(name="list")
@@ -58,7 +66,7 @@ def install(
 
     if not already_installed or upgrade:
         try:
-            _, version_to_install, _ = _get_latest_version(f"minimal-pba-cli-plugin-{name}")
+            _, version_to_install, _ = get_latest_version(f"minimal-pba-cli-plugin-{name}")
         except HTTPError as e:
             if e.response is not None and e.response.status_code == 404:
                 raise typer.BadParameter(
@@ -76,7 +84,7 @@ def install(
     if already_installed:
         args.append("--force")
 
-    _run_external_subprocess(args)
+    run_external_subprocess(args)
 
 
 @plugin.command()
@@ -84,7 +92,7 @@ def install_local(path: Annotated[Path, typer.Argument(help="Path to the plugin 
     """Install a local plugin."""
 
     typer.echo(f"Installing plugin from '{path}'...")
-    _run_external_subprocess([
+    run_external_subprocess([
         "pipx",
         "inject",
         "--editable",
@@ -99,7 +107,7 @@ def uninstall(name: Annotated[str, typer.Argument(help="Name of the plugin to un
     """Uninstall a plugin."""
 
     typer.echo(f"Uninstalling plugin '{name}'...")
-    _run_external_subprocess([
+    run_external_subprocess([
         "pipx",
         "uninject",
         "minimal-pba-cli",
@@ -116,7 +124,7 @@ def _get_installed_version(name: str) -> Version | None:
         return None
 
 
-def _get_latest_version(name: str) -> tuple[Version | None, Version, bool]:
+def get_latest_version(name: str) -> tuple[Version | None, Version, bool]:
     """Get the latest published version of a package."""
 
     url = f"https://pypi.org/pypi/{name}/json"
@@ -144,7 +152,7 @@ def find_plugins() -> dict[str, dict[str, str]]:
     return plugins
 
 
-def _run_external_subprocess(args: list[str]) -> subprocess.CompletedProcess:
+def run_external_subprocess(args: list[str]) -> subprocess.CompletedProcess:
     """Run an external subprocess and return the result."""
 
     result = subprocess.run(args, capture_output=True, encoding="utf-8")
@@ -159,3 +167,60 @@ def _run_external_subprocess(args: list[str]) -> subprocess.CompletedProcess:
         raise typer.Exit(code=result.returncode)
 
     return result
+
+
+def _get_packages_matching_name(prefix: str) -> list[dict[str, str]]:
+    if "LIBRARIES_IO_API_KEY" not in os.environ:
+        typer.secho(
+            "LIBRARIES_IO_API_KEY environment variable not set. "
+            "Create a free libraries.io account to get an API key and set it to use the plugin catalog.",
+            fg=typer.colors.RED,
+        )
+        raise typer.Exit(1)
+    results = requests.get("https://libraries.io/api/search", params={"q": prefix, "platforms": "pypi", "api_key": os.getenv("LIBRARIES_IO_API_KEY")})
+    return [
+        {
+            "name": package["name"],
+            "summary": package["description"],
+        }
+        for package in results.json()
+        if package["name"].startswith(prefix)
+    ]
+
+
+def _display_plugin_list():
+    console = Console()
+
+    table = Table(
+        "Name",
+        "Description",
+        "Latest version",
+        "Installed",
+        title="Available CLI plugins",
+        min_width=50,
+        highlight=True,
+    )
+
+    available_plugins = _get_packages_matching_name("minimal-pba-cli-plugin-")
+
+    for plugin in sorted(available_plugins, key=lambda x: x["name"]):
+        plugin_current_version, plugin_latest_version, plugin_outdated = get_latest_version(plugin["name"])
+        output = "False"
+
+        if plugin_current_version:
+            color = "yellow" if plugin_outdated else "green"
+            output = f"[{color}]{plugin_current_version}[/{color}]"
+
+        plugin_full_name = plugin["name"]
+        plugin_short_name = plugin_full_name.replace("minimal-pba-cli-plugin-", "")
+
+        table.add_row(
+            f"[link=https://capstan-backstage.prod.cirrostratus.org/catalog/default/component/{plugin_full_name}]{plugin_short_name}[/link]",
+            plugin["summary"],
+            str(plugin_latest_version),
+            output,
+        )
+
+    print()
+    console.print(table)
+    console.print("\nInstall a plugin using [bold cyan]pba-cli plugin install <plugin-name>[/bold cyan].")

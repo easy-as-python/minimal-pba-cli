@@ -7,6 +7,7 @@ from typer.main import get_group
 from trogon import Trogon
 from rich.console import Console
 
+from minimal_pba_cli.upgrade import upgrade
 from minimal_pba_cli.plugin import plugin, find_plugins
 
 
@@ -29,6 +30,7 @@ def default(context: typer.Context):
 def main():
     _register_plugins(app)
     app.add_typer(plugin, name="plugin", help="Manage plugins.")
+    app.command()(upgrade)
     app()
 
 

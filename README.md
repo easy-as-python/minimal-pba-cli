@@ -10,6 +10,8 @@ The PBA is achieved using a combination of:
 - [packaging](https://packaging.pypa.io/)
 - [Libraries.io](https://libraries.io/)
 
+For a working plugin example, see [minimal-pba-cli-plugin-example](https://github.com/easy-as-python/minimal-pba-cli-plugin-example).
+
 ## Installation
 
 Install the core CLI using the following command:

@@ -39,5 +39,8 @@ Issues = "https://github.com/easy-as-python/minimal-pba-cli/issues"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.dynamic]
+readme = { file = "README.md", content-type = "text/markdown" }
+
 [project.scripts]
 pba-cli = "minimal_pba_cli.cli:main"

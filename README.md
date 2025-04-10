@@ -59,3 +59,57 @@ Uninstall a plugin using the following command:
 ```shell
 $ pba-cli plugin uninstall <plugin name>
 ```
+
+### Custom scripts
+
+To create a custom script that registers in the CLI, create an executable anywhere on your `PATH` that follows the naming convention `minimal-pba-cli-<name>`.
+This script will be registered as a command named `<name>` in the CLI.
+
+As an example, create a script named `minimal-pba-cli-hello` with the following content:
+
+```shell
+#!/usr/bin/env sh
+
+echo "Hello, world!"
+```
+
+Make the script executable:
+
+```shell
+$ chmod +x minimal-pba-cli-hello
+```
+
+Now, if the script is located in a directory on your `PATH`, you can run it using the following command:
+
+```shell
+$ pba-cli hello
+Hello, world!
+```
+
+Scripts can be written in any language, as long as they are executable and follow the naming convention:
+
+```python
+#!/usr/bin/env python
+
+# minimal-pba-cli-quote
+
+import json
+import urllib.request
+
+
+if __name__ == "__main__":
+    response = urllib.request.urlopen("https://zenquotes.io/api/random")
+    data = json.loads(response.read().decode("utf-8"))
+    print(f"""
+"{data[0]['q']}"
+
+- {data[0]['a']}
+```
+
+```shell
+$ pba-cli quote
+
+"Educating the mind without educating the heart is no education at all."
+
+- Aristotle
+```

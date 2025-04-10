@@ -1,6 +1,7 @@
 from rich.console import Console
 
-from minimal_pba_cli.plugin import get_latest_version, run_external_subprocess
+from minimal_pba_cli.plugin import get_latest_version
+from minimal_pba_cli.util import run_external_subprocess
 
 
 def upgrade():

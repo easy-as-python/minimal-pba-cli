@@ -1,6 +1,5 @@
 import importlib.metadata
 import os
-import subprocess
 from pathlib import Path
 from typing import Annotated
 from importlib.metadata import PackageNotFoundError, version
@@ -11,6 +10,8 @@ from packaging.version import Version
 from requests.exceptions import HTTPError
 from rich.console import Console
 from rich.table import Table
+
+from minimal_pba_cli.util import run_external_subprocess
 
 
 plugin = typer.Typer()
@@ -156,23 +157,6 @@ def find_plugins() -> dict[str, dict[str, str]]:
     return plugins
 
 
-def run_external_subprocess(args: list[str]) -> subprocess.CompletedProcess:
-    """Run an external subprocess and return the result."""
-
-    result = subprocess.run(args, capture_output=True, encoding="utf-8")
-
-    if result.stdout:
-        typer.echo(result.stdout)
-
-    if result.stderr:
-        typer.echo(result.stderr, err=True)
-
-    if result.returncode != 0:
-        raise typer.Exit(code=result.returncode)
-
-    return result
-
-
 def _get_packages_matching_name(prefix: str) -> list[dict[str, str]]:
     if "LIBRARIES_IO_API_KEY" not in os.environ:
         typer.secho(
@@ -222,7 +206,7 @@ def _display_plugin_list():
         plugin_short_name = plugin_full_name.replace("minimal-pba-cli-plugin-", "")
 
         table.add_row(
-            f"[link=https://capstan-backstage.prod.cirrostratus.org/catalog/default/component/{plugin_full_name}]{plugin_short_name}[/link]",
+            f"[link=https://pypi.org/project/{plugin_full_name}]{plugin_short_name}[/link]",
             plugin["summary"],
             str(plugin_latest_version),
             output,

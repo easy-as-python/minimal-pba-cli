@@ -9,6 +9,7 @@ from rich.console import Console
 
 from minimal_pba_cli.upgrade import upgrade
 from minimal_pba_cli.plugin import plugin, find_plugins
+from minimal_pba_cli.customization import list_available_commands, create_command_wrapper
 
 
 app = typer.Typer()
@@ -31,6 +32,8 @@ def main():
     _register_plugins(app)
     app.add_typer(plugin, name="plugin", help="Manage plugins.")
     app.command()(upgrade)
+    for command, full_path in list_available_commands():
+        create_command_wrapper(app, command, full_path)
     app()
 
 

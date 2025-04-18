@@ -1,6 +1,6 @@
 # Minimal command-line interface using a plugin-based architecture
 
-[![Screen capture of video demonstrating the CLI using a plugin-based architecture](./demo.png)](./demo.mov)
+[![Screen capture of video demonstrating the CLI using a plugin-based architecture](./demo.png)](./demo.mp4)
 
 This project demonstrates a minimal (but featureful) command-line interface (CLI) using a plugin-based architecture (PBA).
 The CLI itself is constructed using [Typer](https://typer.tiangolo.com).
